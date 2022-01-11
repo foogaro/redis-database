@@ -1,0 +1,75 @@
+oc adm policy add-cluster-role-to-user sudoer redis-dbaas --as system:admin
+oc adm policy add-cluster-role-to-user cluster-admin redis-dbaas
+
+oc new-project redis-dbaas
+
+oc apply -f openshift.bundle.yaml.yaml
+oc adm policy add-scc-to-group redis-enterprise-scc system:serviceaccounts:redis-dbaas
+
+docker pull registry.connect.redhat.com/redislabs/services-manager:6.2.4-1
+docker pull registry.connect.redhat.com/redislabs/redis-enterprise:6.2.4-55.rhel7-openshift
+docker pull registry.connect.redhat.com/redislabs/redis-enterprise-operator:6.2.4-1
+
+oc apply -f rec_rhel.yaml
+
+kubectl get secret rec -o jsonpath='{.data.username}' | base64 --decode
+kubectl get secret rec -o jsonpath='{.data.password}' | base64 --decode
+
+db-password
+
+redis-#####.rec.redis-dbaas.svc.cluster.local
+
+
+We provide two endpoints for each Redis Enterprise db.
+One is external and the other one is internal.
+Our recommendation is to peer customer VPC with Redis managed VPC and use internal db endpoint for client's connections.
+Enable VPC Peering (https://docs.redis.com/latest/rc/security/vpc-peering/) in SM does not support custom import/export routes.
+
+High availability for replica shards
+https://docs.redis.com/latest/rs/administering/database-operations/replica-ha/
+
+rladmin tune cluster slave_ha enabled
+rladmin tune db <bdb_uid> slave_ha disabled
+rladmin tune cluster slave_ha_grace_period <time_in_seconds>
+rladmin tune db <db:id | name> metrics_export_all <enabled | disabled>
+
+
+rladmin failover 
+        [ db <db:id | name> ] 
+        shard <id1 .. idN> 
+        [ immediate ]
+
+
+
+Migrate shards 
+rladmin migrate [ [db <db:id | name>] | [node <origin node:id>] ]
+        shard <id1 .. idN> 
+        [ preserve_roles ]
+        target_node <id> 
+        [ override_policy ]
+Migrate all slave shards 
+rladmin migrate
+        [ [db <db:id | name>] | [node <origin node:id>] ]
+        all_slave_shards 
+        target_node <id> 
+        [ override_policy ]
+Migrate all master shards 
+rladmin migrate
+        [ [db <db:id | name>] | [node <origin node:id>] ]
+        all_master_shards 
+        target_node <id> 
+        [ override_policy ]
+Migrate all shards 
+rladmin migrate
+        <origin node:id>
+        all_shards
+        target_node <id> 
+        [ override_policy ]
+Migrate endpoints to shard location 
+rladmin migrate
+        [ [db <db:id | name>] | [node <origin node:id>] ]
+        endpoint_to_shards
+        [ restrict_target_node <id> ] 
+        [ override_policy ]
+        [ commit ]
+
