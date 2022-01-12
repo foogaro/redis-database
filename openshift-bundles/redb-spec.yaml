@@ -1,0 +1,20 @@
+apiVersion: app.redislabs.com/v1alpha1
+kind: RedisEnterpriseDatabase
+metadata:
+  name: my-redis-enterprise-db
+spec:
+  alertSettings: { }
+  databaseSecretName: "my-redis-enterprise-db-secret"
+  defaultUser: false
+  evictionPolicy: allkeys-lru
+  memorySize: 2GB
+  modulesList: [ ]
+  ossCluster: false
+  persistence: disabled
+  proxyPolicy: single
+  rackAware: false
+  redisEnterpriseCluster:
+    name: rec-test
+  replication: true
+  shardCount: 4
+  tlsMode: disabled

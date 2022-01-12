@@ -1,7 +1,10 @@
 apiVersion: app.redislabs.com/v1alpha1
 kind: RedisEnterpriseDatabase
 metadata:
-  name: redis-enterprise-database
+  name: my-redis-enterprise-db
 spec:
-
   memorySize: 100MB
+  replication: true
+  persistence: snapshotEvery1Hour
+  shardCount: 2
+  evictionPolicy: allkeys-lru
